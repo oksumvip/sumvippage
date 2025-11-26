@@ -3,85 +3,373 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>网络速度测试</title>
+  <title>NetSpeed Pro - 网络测速工具</title>
   <style>
+    /* 全局样式 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 40px;
-      background-color: #f5f5f5;
-    }
-    h1 {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
       color: #333;
+      min-height: 100vh;
+      padding: 0;
     }
-    #result {
-      margin-top: 20px;
-      font-size: 18px;
-      color: #007bff;
+
+    /* 导航栏 */
+    nav {
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
-    button {
-      padding: 12px 24px;
-      font-size: 16px;
-      background-color: #007bff;
+
+    .nav-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      font-size: 22px;
+      color: #1a2a6c;
+      text-decoration: none;
+    }
+
+    .logo svg {
+      width: 36px;
+      height: 36px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 25px;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #333;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      color: #e74c3c;
+    }
+
+    /* 主容器 */
+    .main-container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    section {
+      display: none;
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      animation: fadeIn 0.5s ease;
+    }
+
+    section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      color: #1a2a6c;
+      margin-bottom: 20px;
+      font-size: 26px;
+    }
+
+    p {
+      line-height: 1.7;
+      margin-bottom: 15px;
+      color: #444;
+    }
+
+    /* 测速页面 */
+    .test-btn {
+      background: #e74c3c;
       color: white;
       border: none;
-      border-radius: 5px;
+      padding: 14px 32px;
+      font-size: 18px;
+      border-radius: 50px;
       cursor: pointer;
+      font-weight: bold;
+      margin: 20px 0;
+      transition: all 0.3s;
     }
-    button:hover {
-      background-color: #0056b3;
+
+    .test-btn:hover:not(:disabled) {
+      background: #c0392b;
+      transform: scale(1.03);
     }
-    button:disabled {
-      background-color: #ccc;
+
+    .test-btn:disabled {
+      background: #bdc3c7;
       cursor: not-allowed;
+      transform: none;
+    }
+
+    #result {
+      margin-top: 20px;
+      padding: 20px;
+      background: #f9f9ff;
+      border-radius: 12px;
+      text-align: center;
+      min-height: 60px;
+    }
+
+    /* 推荐网站 */
+    .recommend-list {
+      list-style: none;
+    }
+
+    .recommend-list li {
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .recommend-list a {
+      color: #2980b9;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .recommend-list a:hover {
+      text-decoration: underline;
+    }
+
+    /* 留言表单（仅展示） */
+    .contact-form input,
+    .contact-form textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-family: inherit;
+    }
+
+    .contact-form button {
+      background: #2ecc71;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .contact-form button:hover {
+      background: #27ae60;
+    }
+
+    .note {
+      font-size: 14px;
+      color: #7f8c8d;
+      margin-top: 10px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: white;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    @media (max-width: 600px) {
+      .nav-links {
+        gap: 15px;
+        font-size: 14px;
+      }
+      .nav-container {
+        padding: 10px;
+      }
+      section {
+        padding: 20px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>网络速度测试</h1>
-  <button id="startBtn" onclick="testSpeed()">开始测速</button>
-  <div id="result"></div>
+
+  <!-- 导航栏 -->
+  <nav>
+    <div class="nav-container">
+      <a href="#" class="logo" onclick="showPage('home'); return false;">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z" fill="#e74c3c"/>
+          <circle cx="12" cy="20" r="2" fill="#1a2a6c"/>
+        </svg>
+        NetSpeed Pro
+      </a>
+      <div class="nav-links">
+        <a href="#" class="active" onclick="showPage('home'); return false;">首页</a>
+        <a href="#" onclick="showPage('speedtest'); return false;">网络测速</a>
+        <a href="#" onclick="showPage('recommend'); return false;">网站推荐</a>
+        <a href="#" onclick="showPage('contact'); return false;">留言</a>
+        <a href="#" onclick="showPage('about'); return false;">关于</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <div class="main-container">
+
+    <!-- 首页 -->
+    <section id="home" class="active">
+      <h2>欢迎使用 NetSpeed Pro</h2>
+      <p>这是一个完全静态、开源、隐私友好的网络速度测试工具。无需注册，无需上传，所有测速均在您的浏览器中完成。</p>
+      <p>点击上方导航栏，开始测速、查看推荐网站或给我们留言！</p>
+      <button class="test-btn" onclick="showPage('speedtest')">立即测速</button>
+    </section>
+
+    <!-- 测速页面 -->
+    <section id="speedtest">
+      <h2>网络速度测试</h2>
+      <p>点击下方按钮，我们将通过下载一个 10MB 的测试文件来估算您的下载带宽，并检测网络延迟。</p>
+      <button class="test-btn" id="startBtn" onclick="runFullTest()">开始测速</button>
+      <div id="result">点击“开始测速”以启动测试</div>
+    </section>
+
+    <!-- 网站推荐 -->
+    <section id="recommend">
+      <h2>实用网站推荐</h2>
+      <ul class="recommend-list">
+        <li><a href="https://ip.cn" target="_blank">IP.cn — 查看本机公网 IP 与地理位置</a></li>
+        <li><a href="https://ping.pe" target="_blank">Ping.pe — 全球节点 Ping 测试</a></li>
+        <li><a href="https://fast.com" target="_blank">Fast.com — Netflix 官方测速（简洁快速）</a></li>
+        <li><a href="https://dnsleaktest.com" target="_blank">DNS Leak Test — 检测 DNS 泄露</a></li>
+        <li><a href="https://browserleaks.com" target="_blank">BrowserLeaks — 浏览器隐私与安全检测</a></li>
+      </ul>
+    </section>
+
+    <!-- 留言页 -->
+    <section id="contact">
+      <h2>给我们留言</h2>
+      <p>感谢您的使用！由于本页面为纯静态网页，暂不支持真实提交，但您可以将建议复制发送至邮箱：<strong>feedback@example.com</strong></p>
+      
+      <form class="contact-form">
+        <input type="text" placeholder="您的姓名" readonly>
+        <input type="email" placeholder="电子邮箱" readonly>
+        <textarea placeholder="留言内容（示例：测速很准！希望增加上传测试）" rows="4" readonly></textarea>
+        <button type="button" disabled>提交留言（当前不可用）</button>
+      </form>
+      <p class="note">💡 提示：本工具完全静态，无后端服务，因此留言功能仅作展示。欢迎 Fork 项目自行扩展！</p>
+    </section>
+
+    <!-- 关于页 -->
+    <section id="about">
+      <h2>关于 NetSpeed Pro</h2>
+      <p><strong>NetSpeed Pro</strong> 是一个开源、免费、无追踪的网络测速工具。</p>
+      <p>特点：</p>
+      <ul style="padding-left: 20px; margin: 10px 0;">
+        <li>✅ 纯 HTML/CSS/JS，无需服务器</li>
+        <li>✅ 所有测速在本地完成，保护隐私</li>
+        <li>✅ 使用全球 CDN 测速源（Cachefly）</li>
+        <li>✅ 响应式设计，支持手机与电脑</li>
+      </ul>
+      <p>项目可托管于 GitHub Pages、Vercel、Netlify 等平台，一键部署。</p>
+    </section>
+
+  </div>
+
+  <footer>
+    &copy; 2025 NetSpeed Pro | 静态网页 · 开源 · 隐私优先
+  </footer>
 
   <script>
-    async function testSpeed() {
-      const fileSizeInBytes = 10 * 1024 * 1024; // 10 MB
-      const testFileUrl = 'https://speedtest.tele2.net/10MB.zip'; // 公共测速文件
+    // 页面切换
+    function showPage(pageId) {
+      document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+      // 更新导航高亮
+      document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+      event?.target?.classList?.add('active');
+    }
 
-      const button = document.getElementById('startBtn');
-      const resultDiv = document.getElementById('result');
+    // 测速逻辑
+    async function pingTest() {
+      const start = Date.now();
+      const img = new Image();
+      await new Promise((resolve) => {
+        img.onload = img.onerror = () => resolve();
+        img.src = `https://www.google.com/images/phd/px.gif?_t=${Date.now()}`;
+      });
+      return Date.now() - start;
+    }
 
-      button.disabled = true;
-      resultDiv.textContent = '正在测试...';
+    async function downloadSpeedTest() {
+      const url = 'https://cachefly.cachefly.net/10mb.test'; // 更稳定的测速源
+      const sizeBytes = 10 * 1024 * 1024;
 
-      const startTime = new Date().getTime();
+      const start = Date.now();
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) throw new Error('下载失败');
 
+      const buffer = await response.arrayBuffer();
+      const duration = (Date.now() - start) / 1000;
+
+      const speedBps = sizeBytes / duration;
+      return (speedBps * 8) / (1024 * 1024); // Mbps
+    }
+
+    async function runFullTest() {
+      const btn = document.getElementById('startBtn');
+      const result = document.getElementById('result');
+
+      btn.disabled = true;
+      result.innerHTML = '🔍 正在检测网络延迟...';
+
+      let latency = 0;
       try {
-        const response = await fetch(testFileUrl, { cache: 'no-store' });
-        if (!response.ok) throw new Error('下载失败');
-
-        // 强制读取整个文件（避免流式响应被优化）
-        const arrayBuffer = await response.arrayBuffer();
-
-        const endTime = new Date().getTime();
-        const durationSeconds = (endTime - startTime) / 1000;
-
-        if (durationSeconds <= 0) throw new Error('时间测量异常');
-
-        const speedBps = fileSizeInBytes / durationSeconds; // 字节/秒
-        const speedMbps = (speedBps * 8) / (1024 * 1024); // 转换为 Mbps
-
-        resultDiv.innerHTML = `
-          下载完成！<br>
-          耗时: ${durationSeconds.toFixed(2)} 秒<br>
-          估算下载速度: <strong>${speedMbps.toFixed(2)} Mbps</strong>
-        `;
-      } catch (error) {
-        console.error('测速出错:', error);
-        resultDiv.textContent = '测速失败，请检查网络或稍后重试。';
-      } finally {
-        button.disabled = false;
+        latency = await pingTest();
+      } catch (e) {
+        latency = 'N/A';
       }
+
+      result.innerHTML = '⬇️ 正在下载 10MB 测试文件...';
+
+      let speed = 0;
+      try {
+        speed = await downloadSpeedTest();
+      } catch (e) {
+        result.innerHTML = '❌ 测速失败：请检查网络或稍后再试。';
+        btn.disabled = false;
+        return;
+      }
+
+      result.innerHTML = `
+        ✅ 测速完成！<br>
+        <strong>下载速度：</strong> ${speed.toFixed(2)} Mbps<br>
+        <strong>网络延迟：</strong> ${latency} ms
+      `;
+      btn.disabled = false;
     }
   </script>
 </body>
 </html>
+
+
